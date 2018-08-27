@@ -1,14 +1,14 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 val versions = new {
-  val scalatestVersion = "3.0.5"
-  val scalaVersion = "2.12.6"
+  val scalatestVersion = "3.0.6-SNAP2"
+  val scalaVersion = "2.13.0-M4"
 }
 
 val settings = Seq(
   version := "0.2.1",
   scalaVersion := versions.scalaVersion,
-  crossScalaVersions := Seq("2.11.12", "2.12.6"),
+  crossScalaVersions := Seq("2.11.12", "2.12.6", "2.13.0-M4"),
   scalacOptions ++= Seq(
     "-target:jvm-1.8",
     "-encoding",
@@ -20,7 +20,6 @@ val settings = Seq(
     "-language:existentials",
     "-language:higherKinds",
     "-language:implicitConversions",
-    "-Yno-adapted-args",
     "-Ywarn-dead-code",
     "-Ywarn-inaccessible",
     "-Ywarn-infer-any",
@@ -44,8 +43,7 @@ val settings = Seq(
     "-Xlint:stars-align",
     "-Xlint:type-parameter-shadow",
     "-Xlint:unsound-match",
-    "-Xexperimental"
-  ),
+  ) ++ (if (scalaVersion.value >= "2.13") Nil else Seq("-Yno-adapted-args", "-Xexperimental")),
   scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings")
 )
 
@@ -62,7 +60,7 @@ lazy val root = project
   .settings(settings: _*)
   .settings(publishSettings: _*)
   .settings(noPublishSettings: _*)
-  .aggregate(chimneyJVM, chimneyJS, protosJVM, protosJS)
+  .aggregate(chimneyJVM, chimneyJS)//, protosJVM, protosJS)
   .dependsOn(chimneyJVM, chimneyJS)
 
 lazy val chimney = crossProject(JSPlatform, JVMPlatform)
@@ -75,25 +73,25 @@ lazy val chimney = crossProject(JSPlatform, JVMPlatform)
   .settings(settings: _*)
   .settings(publishSettings: _*)
   .settings(dependencies: _*)
-  .dependsOn(protos % "test->compile")
+//  .dependsOn(protos % "test->compile")
 
 lazy val chimneyJVM = chimney.jvm
 lazy val chimneyJS = chimney.js
 
-lazy val protos = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
-  .settings(
-    name := "chimney-protos",
-    libraryDependencies += "com.thesamet.scalapb" %%% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion,
-    PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
-    PB.protoSources in Compile := Seq(file("protos/src/main/protobuf")),
-    coverageExcludedPackages := "<empty>;(.*)"
-  )
-  .settings(settings: _*)
-  .settings(noPublishSettings: _*)
-
-lazy val protosJVM = protos.jvm
-lazy val protosJS = protos.js
+//lazy val protos = crossProject(JSPlatform, JVMPlatform)
+//  .crossType(CrossType.Pure)
+//  .settings(
+//    name := "chimney-protos",
+//    libraryDependencies += "com.thesamet.scalapb" %%% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion,
+//    PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
+//    PB.protoSources in Compile := Seq(file("protos/src/main/protobuf")),
+//    coverageExcludedPackages := "<empty>;(.*)"
+//  )
+//  .settings(settings: _*)
+//  .settings(noPublishSettings: _*)
+//
+//lazy val protosJVM = protos.jvm
+//lazy val protosJS = protos.js
 
 lazy val publishSettings = Seq(
   organization := "io.scalaland",
@@ -133,20 +131,20 @@ lazy val publishSettings = Seq(
 lazy val noPublishSettings =
   Seq(skip in publish := true, publishArtifact := false)
 
-lazy val readme = scalatex
-  .ScalatexReadme(
-    projectId = "readme",
-    wd = file(""),
-    url = "https://github.com/scalalandio/chimney/tree/master",
-    source = "Readme"
-  )
-  .settings(noPublishSettings : _*)
-  .settings(
-    scalaVersion := versions.scalaVersion,
-    siteSourceDirectory := target.value / "scalatex",
-    git.remoteRepo := "git@github.com:scalalandio/chimney.git",
-    includeFilter in (makeSite in Jekyll) := new FileFilter {
-      def accept(p: File) = true
-    }
-  )
-  .enablePlugins(GhpagesPlugin)
+//lazy val readme = scalatex
+//  .ScalatexReadme(
+//    projectId = "readme",
+//    wd = file(""),
+//    url = "https://github.com/scalalandio/chimney/tree/master",
+//    source = "Readme"
+//  )
+//  .settings(noPublishSettings : _*)
+//  .settings(
+//    scalaVersion := versions.scalaVersion,
+//    siteSourceDirectory := target.value / "scalatex",
+//    git.remoteRepo := "git@github.com:scalalandio/chimney.git",
+//    includeFilter in (makeSite in Jekyll) := new FileFilter {
+//      def accept(p: File) = true
+//    }
+//  )
+//  .enablePlugins(GhpagesPlugin)
